@@ -1,0 +1,21 @@
+.sulfide-labels {
+  font-size: 0.5rem;
+  &--pos {
+    font-size: 0.35rem;
+  }
+}
+
+.glyco-labels {
+  font-size: 0.5rem;
+  color: white; 
+  &--pos {
+    font-size: 0.35rem;
+    color: white;
+  }
+}
+
+.windowSvg--wrapper {
+  position: relative;
+  top: -200px;
+  z-index: -1000;
+}
