@@ -16,17 +16,17 @@ const calculateBondRanking = array => {
   const pairRanking = [];
   array.forEach((pair, idx) => {
     let total = 1;
-    const [low, high] = pair;
+    const [currLow, currHigh] = pair;
     for (let i = 0; i < array.length; i += 1) {
       if (idx !== i) {
-        const [currLow, currHigh] = array[i];
-        if (low < currLow && high > currHigh) {
+        const [arrLow, arrHigh] = array[i];
+        if (currLow < arrLow && currHigh > arrHigh) {
             total += 1;
         }
-        if (low < currLow && high > currLow && high < currHigh) {
+        if (currLow < arrLow && currHigh > arrLow && currHigh < arrHigh) {
           total += 0.55;
         }
-        if (low > currLow && low < currHigh && high > currHigh) {
+        if (currLow > arrLow && currLow < arrHigh && currHigh > arrHigh) {
           total += 0.75;
         }
       }
@@ -118,6 +118,19 @@ function Visualization(props) {
     setFullScaleDisabled(false);
   }
   const pairRanking = calculateBondRanking(glycoBonds);
+  const makePairRankArray = array =>{
+    let arr = []
+    array.forEach((pair, idx) => {
+      let entry = {
+        bond: pair,
+        index: idx,
+        rank: pairRanking[idx]
+      }
+      arr.push(entry)
+    })
+    return arr;
+  }
+  const pairRankArray = makePairRankArray(glycoBonds);
 
   const xScale = scaleLinear()
     .domain([0, proteinLength])
@@ -137,8 +150,17 @@ function Visualization(props) {
     setWindowView(!windowView);
   };
 
-  const bondHeight = idx => {
-    const bHeight = SULFIDE_POS + SULFIDE_BOND_LENGTH * pairRanking[idx];
+  const bondHeight = (bond) => {    
+    const [x,y] = bond
+    let rightIdx = 0
+    for (let i = 0; i < pairRankArray.length; i += 1) {
+      const [arrX,arrY] = pairRankArray[i].bond
+      if(x==arrX && y==arrY){
+        rightIdx = i
+        break;
+      }
+    }
+    const bHeight = SULFIDE_POS + SULFIDE_BOND_LENGTH * pairRanking[rightIdx];
     return bHeight;
   };
 
@@ -252,7 +274,7 @@ function Visualization(props) {
       });
 
       console.log('attachSulfides -> leftBonds', leftBonds);
-      console.log("Pair Ranking:", pairRanking)
+     
       leftBonds.forEach((pair, idx) => {
         const [x, y] = pair.split(' ');
         // attach sulfide
@@ -274,30 +296,31 @@ function Visualization(props) {
           .attr('x1', bondPos)
           .attr('y1', SULFIDE_POS + 20)
           .attr('x2', bondPos)
-          .attr('y2', bondHeight(idx))
+          .attr('y2', bondHeight([x,y]))
           .style('stroke', 'black');
 
         const sulfide = g.append('text');
         sulfide
           .attr('dx', bondPos - 5)
-          .attr('dy', bondHeight(idx) + SULFIDE_ATOM_OFFSET)
+          .attr('dy', bondHeight([x,y]) + SULFIDE_ATOM_OFFSET)
           .text(() => 'S')
           .attr('class', 'sulfide-labels');
 
         const pos = g.append('text');
         pos
           .attr('dx', bondPos + 6)
-          .attr('dy', bondHeight(idx) + SULFIDE_ATOM_OFFSET + 5)
+          .attr('dy', bondHeight([x,y]) + SULFIDE_ATOM_OFFSET + 5)
           .text(() => `${y}`)
           .attr('class', 'sulfide-labels--pos');
 
         const link = g.append('line');
         link
           .attr('x1', WINDOW_SPINE_START_POS)
-          .attr('y1', bondHeight(idx))
+          .attr('y1', bondHeight([x,y]))
           .attr('x2', bondPos)
-          .attr('y2', bondHeight(idx))
+          .attr('y2', bondHeight([x,y]))
           .style('stroke', 'black');
+
       });
 
       const rightBonds = disulfideBonds.filter(b => {
@@ -313,7 +336,8 @@ function Visualization(props) {
         let bondProportion = x/proteinLength
         let windowProportion = (x - windowPos.start)/(windowPos.end - windowPos.start)
         let bondPos = isWindowView ? (WINDOW_SPINE_START_POS + (windowProportion*WINDOW_SPINE_WIDTH)) : (SPINE_START_POS + (bondProportion*SPINE_WIDTH))
-        
+        let scaledWindowEnd = WINDOW_SPINE_WIDTH + 15
+
         const atom = g.append('circle');
         atom
           .attr('cx', bondPos)
@@ -328,39 +352,56 @@ function Visualization(props) {
           .attr('x1', bondPos)
           .attr('y1', SULFIDE_POS + 20)
           .attr('x2', bondPos)
-          .attr('y2', bondHeight(idx))
+          .attr('y2', bondHeight([x,y]))
           .style('stroke', 'black');
 
         const sulfide = g.append('text');
         sulfide
           .attr('dx', bondPos - 5)
-          .attr('dy', bondHeight(idx) + SULFIDE_ATOM_OFFSET)
+          .attr('dy', bondHeight([x,y]) + SULFIDE_ATOM_OFFSET)
           .text(() => 'S')
           .attr('class', 'sulfide-labels');
 
         const pos = g.append('text');
         pos
           .attr('dx', bondPos + 7)
-          .attr('dy', bondHeight(idx) + SULFIDE_ATOM_OFFSET + 5)
+          .attr('dy', bondHeight([x,y]) + SULFIDE_ATOM_OFFSET + 5)
           .text(() => `${x}`)
           .attr('class', 'sulfide-labels--pos');
 
         const link = g.append('line');
         link
           .attr('x1', bondPos)
-          .attr('y1', bondHeight(idx))
-          .attr('x2', scale(windowEnd))
-          .attr('y2', bondHeight(idx))
+          .attr('y1', bondHeight([x,y]))
+          .attr('x2', scaledWindowEnd)
+          .attr('y2', bondHeight([x,y]))
           .style('stroke', 'black');
+
       });
     }
 
     bonds.forEach((pair, idx) => {
       const [x, y] = pair;
+      let xProportion = x/proteinLength
+      let xWindowProp = (x - windowPos.start)/(windowPos.end - windowPos.start)
+      let xPos = isWindowView ? (WINDOW_SPINE_START_POS + (xWindowProp*WINDOW_SPINE_WIDTH)) : (SPINE_START_POS + (xProportion*SPINE_WIDTH))
+      
+      let yProportion = y/proteinLength
+      let yWindowProp = (y - windowPos.start)/(windowPos.end - windowPos.start)
+      let yPos = isWindowView ? (WINDOW_SPINE_START_POS + (yWindowProp*WINDOW_SPINE_WIDTH)) : (SPINE_START_POS + (yProportion*SPINE_WIDTH))
+
       pair.forEach(el => {
         const atom = g.append('circle');
         atom
-          .attr('cx', scale(el))
+          .attr('cx', xPos)
+          .attr('cy', SULFIDE_POS)
+          .attr('r', CIRCLE_RADIUS)
+          .style('stroke', 'white')
+          .style('fill', COLOR_PALLETE[idx % COLOR_PALLETE.length]);
+        
+        const atom2 = g.append('circle');
+        atom2
+          .attr('cx', yPos)
           .attr('cy', SULFIDE_POS)
           .attr('r', CIRCLE_RADIUS)
           .style('stroke', 'white')
@@ -368,32 +409,56 @@ function Visualization(props) {
 
         const bond = g.append('line');
         bond
-          .attr('x1', scale(el))
+          .attr('x1', xPos)
           .attr('y1', SULFIDE_POS + 20)
-          .attr('x2', scale(el))
-          .attr('y2', bondHeight(idx))
+          .attr('x2', xPos)
+          .attr('y2', bondHeight(pair))
           .style('stroke', 'black');
+        
+        const bond2 = g.append('line');
+        bond2
+          .attr('x1', yPos)
+          .attr('y1', SULFIDE_POS + 20)
+          .attr('x2', yPos)
+          .attr('y2', bondHeight(pair))
+          .style('stroke', 'black');
+        
         const sulfide = g.append('text');
         sulfide
-          .attr('dx', scale(el) - 5)
-          .attr('dy', bondHeight(idx) + SULFIDE_ATOM_OFFSET)
+          .attr('dx', xPos - 5)
+          .attr('dy', bondHeight(pair) + SULFIDE_ATOM_OFFSET)
+          .text(() => 'S')
+          .attr('class', 'sulfide-labels');
+        
+        const sulfide2 = g.append('text');
+        sulfide2
+          .attr('dx', yPos - 5)
+          .attr('dy', bondHeight(pair) + SULFIDE_ATOM_OFFSET)
           .text(() => 'S')
           .attr('class', 'sulfide-labels');
 
         const pos = g.append('text');
         pos
-          .attr('dx', scale(el) + 4)
-          .attr('dy', bondHeight(idx) + SULFIDE_ATOM_OFFSET + 5)
-          .text(() => `${el}`)
+          .attr('dx', xPos + 4)
+          .attr('dy', bondHeight(pair) + SULFIDE_ATOM_OFFSET + 5)
+          .text(() => `${x}`)
+          .attr('class', 'sulfide-labels--pos');
+      
+        const pos2 = g.append('text');
+        pos2
+          .attr('dx', yPos + 4)
+          .attr('dy', bondHeight(pair) + SULFIDE_ATOM_OFFSET + 5)
+          .text(() => `${y}`)
           .attr('class', 'sulfide-labels--pos');
       });
       const link = g.append('line');
       link
-        .attr('x1', scale(x))
-        .attr('y1', bondHeight(idx))
-        .attr('x2', scale(y))
-        .attr('y2', bondHeight(idx))
+        .attr('x1', xPos)
+        .attr('y1', bondHeight(pair))
+        .attr('x2', yPos)
+        .attr('y2', bondHeight(pair))
         .style('stroke', 'black');
+
     });
   };
 
