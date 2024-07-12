@@ -19,6 +19,11 @@
   &--bullet {
     width: fit-content;
   }
+  
+  &--ul {
+    padding: 0;
+    margin-left: 10px
+  }
 }
 .MuiCardMedia-img {
   object-fit: fill;

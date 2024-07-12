@@ -180,15 +180,15 @@ function Visualization(props) {
 
       atom
         .attr('dx', bondPos - 8)
-        .attr('dy', SULFIDE_POS - GLYCO_STEM_LENGTH - GLYCO_LINK_LENGTH * 5.5)
+        .attr('dy', SULFIDE_POS - GLYCO_STEM_LENGTH - GLYCO_LINK_LENGTH * 5.1)
         .text(() => `N`)
         .attr('class', 'glyco-labels');
         
 
       const pos = g.append('text');
       pos
-        .attr('dx', bondPos + 4)
-        .attr('dy', SULFIDE_POS - GLYCO_STEM_LENGTH - GLYCO_LINK_LENGTH * 5.0)
+        .attr('dx', bondPos + 2)
+        .attr('dy', SULFIDE_POS - GLYCO_STEM_LENGTH - GLYCO_LINK_LENGTH * 4.7)
         .text(() => `${el}`)
         .attr('class', 'glyco-labels--pos');
         
@@ -308,7 +308,7 @@ function Visualization(props) {
 
         const pos = g.append('text');
         pos
-          .attr('dx', bondPos + 6)
+          .attr('dx', bondPos + 5)
           .attr('dy', bondHeight([x,y]) + SULFIDE_ATOM_OFFSET + 5)
           .text(() => `${y}`)
           .attr('class', 'sulfide-labels--pos');
@@ -364,7 +364,7 @@ function Visualization(props) {
 
         const pos = g.append('text');
         pos
-          .attr('dx', bondPos + 7)
+          .attr('dx', bondPos + 5)
           .attr('dy', bondHeight([x,y]) + SULFIDE_ATOM_OFFSET + 5)
           .text(() => `${x}`)
           .attr('class', 'sulfide-labels--pos');
@@ -402,7 +402,7 @@ function Visualization(props) {
         const atom2 = g.append('circle');
         atom2
           .attr('cx', yPos)
-          .attr('cy', SULFIDE_POS)
+          .attr('cy', SULFIDE_POS) 
           .attr('r', CIRCLE_RADIUS)
           .style('stroke', 'white')
           .style('fill', COLOR_PALLETE[idx % COLOR_PALLETE.length]);
@@ -429,6 +429,7 @@ function Visualization(props) {
           .attr('dy', bondHeight(pair) + SULFIDE_ATOM_OFFSET)
           .text(() => 'S')
           .attr('class', 'sulfide-labels');
+          
         
         const sulfide2 = g.append('text');
         sulfide2
