@@ -9,3 +9,9 @@ This web application was built to visualize protein topology, glycosylation bond
 - If the current scale of the visualization is not sufficient to identify patterns , on the top right of the app bar is a sliding scale to horizontally expand the protein.
 
 - In addition to scaling, there is also a window feature that allows users to target a specific region for visualization. This is particularily useful when scaling alone is not sufficient to seperate patterns. The window feature is located below the original visualization.
+
+Please cite following publication when using the visualizer:
+
+- Discovery and Visualization of the Hidden Relationships among N-Glycosylation, Disulfide Bonds, and Membrane Topology. International Journal of Molecular Sciences. 2023; 24(22):16182.
+
+For further information, contact Dr. Bingyun Sun: bingyun_sun@sfu.ca
